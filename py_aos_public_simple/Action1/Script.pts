@@ -1,0 +1,251 @@
+﻿# ============================================================================
+# Advantage Online Shopping Demo Script
+#
+# Purpose:
+#   Demonstrates navigation through various product categories while measuring
+#   the response time of a business transaction.
+#
+# UFT Concepts Demonstrated:
+#   - Browser and Page objects
+#   - Object identification
+#   - Clicking links and buttons
+#   - Checkpoints
+#   - Transactions
+#   - Runtime object properties
+#   - DataTable usage
+#   - Reporting
+#
+# Python Concepts Demonstrated:
+#   - Module imports
+#   - Variables
+#   - Function calls
+#   - Timing operations
+#   - Formatted strings (f-strings)
+# ============================================================================
+
+# Import Python's built-in time module.
+# This provides timing functions that can be used to measure
+# application response times independently of UFT transactions.
+import time
+
+
+# ----------------------------------------------------------------------------
+# Browser Control
+# ----------------------------------------------------------------------------
+
+# This line is currently commented out.
+#
+# FullScreen() would maximize the browser window to occupy the screen.
+# This can help avoid issues where objects are hidden or displayed differently
+# because of browser size.
+#
+# Browser("Advantage Shopping").FullScreen()
+
+
+# ----------------------------------------------------------------------------
+# Transaction Measurement
+# ----------------------------------------------------------------------------
+
+# Start a UFT transaction.
+#
+# Transactions are commonly used for performance measurements.
+# When integrated with tools such as LoadRunner Professional,
+# LoadRunner Enterprise, or VuGen, transactions help measure
+# the response time of business processes.
+Services.StartTransaction("trx_speakers")
+
+# Capture a high-precision timestamp.
+#
+# perf_counter() provides a very accurate timer suitable for
+# measuring elapsed time.
+start_time = time.perf_counter()
+
+
+# ----------------------------------------------------------------------------
+# Navigate to Speakers Category
+# ----------------------------------------------------------------------------
+
+# Click the "Advantage DEMO" hyperlink.
+#
+# UFT locates:
+#   Browser -> Page -> Link
+#
+# and performs a Click() operation.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("dvantage DEMO").Click()
+
+# Navigate to the Speakers category.
+#
+# This simulates a user selecting the Speakers section
+# of the online store.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("SpeakersCategory").Click()
+
+
+# ----------------------------------------------------------------------------
+# Verify Buy Now Button
+# ----------------------------------------------------------------------------
+
+# Validate that the Buy Now button exists and matches
+# the stored checkpoint definition.
+#
+# Checkpoints are reusable verification points that help
+# confirm the application's state.
+Browser("Advantage Shopping").Page("Advantage Shopping").WebButton("buy_now").Check(
+    CheckPoint("buy_now")
+)
+
+# Click the Buy Now button.
+#
+# This simulates a customer beginning a purchase.
+Browser("Advantage Shopping").Page("Advantage Shopping").WebButton("buy_now").Click()
+
+
+# ----------------------------------------------------------------------------
+# Complete Transaction Timing
+# ----------------------------------------------------------------------------
+
+# Capture the ending timestamp.
+end_time = time.perf_counter()
+
+# End the UFT transaction.
+#
+# UFT will record transaction timing information
+# inside the run results.
+Services.EndTransaction("trx_speakers")
+
+
+# ----------------------------------------------------------------------------
+# Calculate and Report Duration
+# ----------------------------------------------------------------------------
+
+# Determine elapsed time by subtracting the start time
+# from the end time.
+#
+# Example:
+#   15.136 - 13.002 = 2.134 seconds
+duration = end_time - start_time
+
+# Report a custom informational message to the UFT report.
+#
+# f-strings are a Python feature for building strings.
+#
+# {duration:.3f}
+# means:
+#   Display duration with 3 decimal places.
+#
+# Example output:
+#   Transaction completed in 1.837 seconds
+Reporter.ReportEvent(
+    micDone,
+    "Transaction Duration",
+    f"Transaction completed in {duration:.3f} seconds"
+)
+
+
+# ----------------------------------------------------------------------------
+# Browse Multiple Product Categories
+# ----------------------------------------------------------------------------
+
+# Return to the home page.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("dvantage DEMO").Click()
+
+# Open the Tablets category.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("TabletsCategory").Click()
+
+# Return to the home page.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("dvantage DEMO").Click()
+
+# Open the Mice category.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("MiceCategoryTxt").Click()
+
+# Return to the home page again.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("dvantage DEMO").Click()
+
+
+# ----------------------------------------------------------------------------
+# Product Search Example
+# ----------------------------------------------------------------------------
+
+# Click the search icon.
+#
+# WebElement objects are generic web objects that may not fit
+# into standard UFT object classifications.
+Browser("Advantage Shopping").Page("Advantage Shopping").WebElement("menuSearch_2").Click()
+
+
+# ----------------------------------------------------------------------------
+# Parameterized Search Value
+# ----------------------------------------------------------------------------
+
+# Read data from the UFT DataTable and enter it into
+# the application's search field.
+#
+# Data-driven testing allows the same script to execute
+# multiple times using different input values.
+#
+# DataTable(...)
+# retrieves a value stored within the DataTable.
+#
+# dtGlobalSheet refers to the global sheet used by
+# all actions in the test.
+Browser("Advantage Shopping").Page("Advantage Shopping").WebEdit(
+    "Search AdvantageOnlineShopping"
+).Set(
+    DataTable("DataTable_mice_param_dtGlobalSheet_", dtGlobalSheet)
+)
+
+
+# ----------------------------------------------------------------------------
+# Open Search Results
+# ----------------------------------------------------------------------------
+
+# Click the first matching search result image.
+Browser("Advantage Shopping").Page("Advantage Shopping").Image(
+    "fetchImage?image_id=5505"
+).Click()
+
+# Click another image result.
+#
+# This demonstrates interaction with image objects identified
+# within UFT's object repository.
+Browser("Advantage Shopping").Page("Advantage Shopping").Image(
+    "fetchImage?image_id=5505_2"
+).Click()
+
+# Return to the home page.
+Browser("Advantage Shopping").Page("Advantage Shopping").Link("HOME").Click()
+
+
+# ----------------------------------------------------------------------------
+# Runtime Object Properties
+# ----------------------------------------------------------------------------
+
+# Runtime Object (RO) Properties provide information
+# about an object during execution.
+#
+# These properties are valuable when:
+#   - troubleshooting object identification
+#   - creating dynamic scripts
+#   - performing validations
+#
+# Get the displayed name property.
+name = Browser("Advantage Shopping").Page("Advantage Shopping").Link(
+    "dvantage DEMO"
+).GetROProperty("name")
+
+# Get the XPath used by the browser for locating the object.
+#
+# XPath can be useful when diagnosing object-recognition issues.
+xpath = Browser("Advantage Shopping").Page("Advantage Shopping").Link(
+    "dvantage DEMO"
+).GetROProperty("xpath")
+
+
+# ----------------------------------------------------------------------------
+# Browser Cleanup
+# ----------------------------------------------------------------------------
+
+# Restore the browser window from maximized/full-screen mode.
+#
+# If FullScreen() or Maximize() had previously been used,
+# Restore() returns the window to its normal size.
+Browser("Advantage Shopping").Restore()
