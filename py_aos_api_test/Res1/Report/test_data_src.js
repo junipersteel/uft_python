@@ -1,0 +1,1 @@
+﻿var __testDataSource={items:[{dataFilePath:'Default.xlsx',dataFileFormat:'excel',dataFileFolder:'C:\\Data\\uft_one_python\\py_aos_api_test\\Res1',namePairs:[]}]};

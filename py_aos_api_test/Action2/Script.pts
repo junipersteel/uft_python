@@ -1,0 +1,263 @@
+﻿# ============================================================================
+# REST API Example using Python Requests
+#
+# Purpose:
+#   Demonstrates how to call a REST API from a UFT Python script,
+#   retrieve JSON data, and process the response.
+#
+# Why is this useful?
+#   Modern applications rarely consist only of a user interface.
+#   Most business functionality is exposed through APIs.
+#
+# Examples:
+#   - Retrieve product information
+#   - Validate backend data
+#   - Create test data
+#   - Verify database updates indirectly
+#   - Perform API testing without using the UI
+#
+# UFT Concepts:
+#   - Transactions
+#   - Reporting
+#   - Python integration
+#
+# Python Concepts:
+#   - Modules
+#   - Functions
+#   - Dictionaries
+#   - Exception handling
+#   - REST requests
+#   - JSON processing
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Import the Requests Library
+# ----------------------------------------------------------------------------
+
+# Requests is one of the most popular Python libraries.
+#
+# It simplifies REST API communication by providing
+# easy-to-use functions such as:
+#
+#   requests.get()
+#   requests.post()
+#   requests.put()
+#   requests.delete()
+#
+# In UFT Python tests, this library is commonly used
+# to validate backend services.
+import requests
+
+
+# ----------------------------------------------------------------------------
+# Function Definition
+# ----------------------------------------------------------------------------
+
+def GetComments(base_url):
+    """
+    Retrieve the most popular comments from the
+    Advantage Online Shopping REST API.
+
+    Parameters:
+        base_url
+
+    Example:
+        https://www.advantageonlineshopping.com
+
+    Returns:
+        Dictionary containing the JSON response.
+    """
+
+    # ------------------------------------------------------------------------
+    # Construct the Endpoint URL
+    # ------------------------------------------------------------------------
+
+    # rstrip('/') removes a trailing slash if one exists.
+    #
+    # Example:
+    #
+    # Input:
+    #   https://www.advantageonlineshopping.com/
+    #
+    # Output:
+    #   https://www.advantageonlineshopping.com
+    #
+    # This helps avoid accidental double slashes:
+    #
+    # BAD:
+    #   https://site.com//catalog/api...
+    #
+    # GOOD:
+    #   https://site.com/catalog/api...
+    url = f"{base_url.rstrip('/')}/catalog/api/v1/MostPopularComments"
+
+
+    # ------------------------------------------------------------------------
+    # Define HTTP Headers
+    # ------------------------------------------------------------------------
+
+    # Headers provide metadata about the request.
+    #
+    # Content-Type tells the server the type of data
+    # being transmitted.
+    #
+    # While this GET request does not send a payload,
+    # specifying headers is a common practice.
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+
+    # ------------------------------------------------------------------------
+    # Send HTTP GET Request
+    # ------------------------------------------------------------------------
+
+    # Perform the REST API call.
+    #
+    # GET is used when retrieving data without changing
+    # server-side information.
+    #
+    # The response object contains:
+    #   Status Code
+    #   Headers
+    #   Content
+    response = requests.get(url)
+
+
+    # ------------------------------------------------------------------------
+    # Validate the Response
+    # ------------------------------------------------------------------------
+
+    # If the server returns:
+    #   400
+    #   401
+    #   404
+    #   500
+    #
+    # an exception will automatically be raised.
+    #
+    # This simplifies error handling.
+    response.raise_for_status()
+
+
+    # ------------------------------------------------------------------------
+    # Convert JSON to Python Objects
+    # ------------------------------------------------------------------------
+
+    # Most REST APIs return JSON.
+    #
+    # Example:
+    #
+    # {
+    #     "id":1,
+    #     "name":"Speaker"
+    # }
+    #
+    # response.json() converts the JSON into Python
+    # dictionaries and lists.
+    data = response.json()
+
+
+    # ------------------------------------------------------------------------
+    # Return Data
+    # ------------------------------------------------------------------------
+
+    # Return a Python dictionary containing
+    # the API response.
+    return {
+        "response": data,
+    }
+
+
+# ----------------------------------------------------------------------------
+# Main Execution Block
+# ----------------------------------------------------------------------------
+
+try:
+
+    # ------------------------------------------------------------------------
+    # Start UFT Transaction
+    # ------------------------------------------------------------------------
+
+    # Measure how long the API call takes.
+    #
+    # This transaction timing appears in
+    # UFT results and may also be leveraged
+    # by performance testing tools.
+    Services.StartTransaction("getComments")
+
+
+    # ------------------------------------------------------------------------
+    # Call API Function
+    # ------------------------------------------------------------------------
+
+    # Execute the function and retrieve comments.
+    #
+    # Expected endpoint:
+    #
+    # https://www.advantageonlineshopping.com/
+    #     catalog/api/v1/MostPopularComments
+    comments = GetComments(
+        "https://www.advantageonlineshopping.com"
+    )
+
+
+    # ------------------------------------------------------------------------
+    # End Transaction
+    # ------------------------------------------------------------------------
+
+    Services.EndTransaction("getComments")
+
+
+    # ------------------------------------------------------------------------
+    # Display Results
+    # ------------------------------------------------------------------------
+
+    print("\nMost popular comments:")
+
+    # Print the returned dictionary.
+    #
+    # Example:
+    #
+    # {
+    #     'response': [...]
+    # }
+    print(comments)
+
+
+# ----------------------------------------------------------------------------
+# HTTP Error Handling
+# ----------------------------------------------------------------------------
+
+except requests.exceptions.HTTPError as e:
+
+    # Handle REST-specific failures.
+    #
+    # Examples:
+    #   404 Not Found
+    #   500 Internal Server Error
+    #   401 Unauthorized
+
+    print(f"Function failed: {e}")
+
+    # Display the server response body.
+    #
+    # Often contains useful diagnostic information.
+    print(e.response.text)
+
+
+# ----------------------------------------------------------------------------
+# General Exception Handling
+# ----------------------------------------------------------------------------
+
+except Exception as e:
+
+    # Catch any unexpected runtime errors.
+    #
+    # Examples:
+    #   Network unavailable
+    #   JSON parse issues
+    #   Python coding errors
+
+    print(f"Unexpected error: {e}")

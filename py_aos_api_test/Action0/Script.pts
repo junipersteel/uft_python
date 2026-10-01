@@ -1,0 +1,3 @@
+﻿RunAction("Login", oneIteration)
+RunAction("GetComments", oneIteration)
+RunAction("CommentAssessment", oneIteration)

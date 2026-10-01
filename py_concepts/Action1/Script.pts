@@ -1,0 +1,254 @@
+﻿# ============================================================================
+# UFT Python Test Using External Function Library
+#
+# Purpose:
+#   Demonstrates how to:
+#       - Load a Python function library
+#       - Create reusable functions
+#       - Navigate through a web application
+#       - Verify application state using checkpoints
+#       - Instantiate and use custom Python classes
+#       - Log messages and transactions
+#
+# UFT Concepts:
+#       - Function Libraries
+#       - Transactions
+#       - Checkpoints
+#       - Reporting
+#       - Browser/Page objects
+#
+# Python Concepts:
+#       - Functions
+#       - Classes
+#       - Objects
+#       - Methods
+#       - Object Instantiation
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Load External Python Library
+# ----------------------------------------------------------------------------
+
+# LoadFunctionLibrary imports another Python file and makes its
+# functions and classes available to this script.
+#
+# After loading this library we can directly use:
+#     Dog
+#     Logger
+#     Timer
+#     g()
+#
+# without redefining them here.
+#
+# Similar to Python's "import" statement, but designed specifically
+# for UFT function libraries.
+
+# Make sure to place the library in arelative path. 
+LoadFunctionLibrary("C:\\Data\\uft_python\\python_library\\python_library.py")
+
+
+# ----------------------------------------------------------------------------
+# Reusable Navigation Function
+# ----------------------------------------------------------------------------
+
+def navigate():
+    """
+    Navigate to the Speakers section and verify a product.
+
+    Why create a function?
+
+    Reusable test logic should be placed inside functions
+    rather than duplicated throughout a script.
+
+    Benefits:
+        - Easier maintenance
+        - Improved readability
+        - Reusable test steps
+    """
+
+    # ------------------------------------------------------------
+    # Navigate to Home Page
+    # ------------------------------------------------------------
+
+    Browser("Advantage Shopping").Page(
+        "Advantage Shopping"
+    ).Link("dvantage DEMO").Click()
+
+
+    # ------------------------------------------------------------
+    # Open Speakers Category
+    # ------------------------------------------------------------
+
+    Browser("Advantage Shopping").Page(
+        "Advantage Shopping"
+    ).Link("SpeakersCategory").Click()
+
+
+    # ------------------------------------------------------------
+    # Purchase Product
+    # ------------------------------------------------------------
+
+    # Click Buy Now.
+    #
+    # Simulates a user beginning a purchase process.
+    Browser("Advantage Shopping").Page(
+        "Advantage Shopping"
+    ).WebButton("buy_now").Click()
+
+
+    # ------------------------------------------------------------
+    # Verify Product Using Checkpoint
+    # ------------------------------------------------------------
+
+    # Validate that the expected speaker product
+    # is displayed.
+    #
+    # A checkpoint compares the current runtime
+    # state against a previously stored expected state.
+    Browser("Advantage Shopping").Page(
+        "Advantage Shopping"
+    ).WebElement(
+        "HP S9500 BLUETOOTH WIRELESS"
+    ).Check(
+        CheckPoint("HP S9500 BLUETOOTH WIRELESS SPEAKER")
+    )
+
+
+    # ------------------------------------------------------------
+    # Return Home
+    # ------------------------------------------------------------
+
+    Browser("Advantage Shopping").Page(
+        "Advantage Shopping"
+    ).Link("dvantage DEMO").Click()
+
+
+# ----------------------------------------------------------------------------
+# Execute Function
+# ----------------------------------------------------------------------------
+
+# Call the function.
+#
+# The steps contained in navigate() execute at this point.
+navigate()
+
+
+# ----------------------------------------------------------------------------
+# Create Dog Objects
+# ----------------------------------------------------------------------------
+
+# Create an instance of Dog.
+#
+# Python automatically calls:
+#       Dog.__init__()
+#
+# Parameters:
+#       name = Buddy
+#       age = 3
+dog1 = Dog("Buddy", 3)
+
+
+# Create another Dog instance.
+dog2 = Dog("Lucy", 5)
+
+
+# ----------------------------------------------------------------------------
+# Object Usage Examples
+# ----------------------------------------------------------------------------
+
+# Display the object.
+#
+# Python automatically calls:
+#       dog1.__str__()
+#
+# Output:
+#       Buddy is 3 years old.
+print(dog1)
+
+
+# Call an object method.
+#
+# bark() returns a string representing
+# the dog's barking behavior.
+#
+# Output:
+#       Lucy says woof!
+print(dog2.bark())
+
+
+# ----------------------------------------------------------------------------
+# Logger Example
+# ----------------------------------------------------------------------------
+
+# Create a Logger object.
+#
+# Currently commented out.
+#
+# logger = Logger()
+
+# If enabled:
+#
+# logger.output(
+#     "HIGH",
+#     "THIS IS A LOG TEST."
+# )
+#
+# Example output:
+#
+# 2026-09-14 11:15:22
+#     THIS IS A LOG TEST.
+#     HIGH
+
+
+# ----------------------------------------------------------------------------
+# Transaction Example
+# ----------------------------------------------------------------------------
+
+# Start a transaction.
+#
+# Transactions measure the duration of business processes.
+#
+# These measurements may later appear in:
+#     - Run Results
+#     - LoadRunner
+#     - Performance Reports
+Services.StartTransaction("trx_logger")
+
+
+# ----------------------------------------------------------------------------
+# UFT Logging
+# ----------------------------------------------------------------------------
+
+# This example uses the UFT Services object
+# to write a message into the test report.
+#
+# Unlike print(), this information appears
+# in the UFT run results.
+#
+# OutputMsg indicates the message severity/type.
+Services.LogMessage(
+    "This is an error.",
+    OutputMsg
+)
+
+
+# End transaction measurement.
+Services.EndTransaction("trx_logger")
+
+
+# ----------------------------------------------------------------------------
+# Call Imported Function
+# ----------------------------------------------------------------------------
+
+# Execute function g() from the external library.
+#
+# Function g() generates:
+#
+# This is a function call !
+# And another line.
+#
+# Demonstrates how functions loaded through
+# LoadFunctionLibrary() can be called exactly
+# like local functions.
+g()

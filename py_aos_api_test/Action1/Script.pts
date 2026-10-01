@@ -1,0 +1,310 @@
+﻿# ============================================================================
+# REST API Login Example
+#
+# Purpose:
+#   Demonstrates how to authenticate against the
+#   Advantage Online Shopping REST API using Python.
+#
+# Typical Uses:
+#   - API testing
+#   - Authentication validation
+#   - Test data setup
+#   - Retrieving session tokens
+#   - Backend verification
+#
+# Python Concepts:
+#   - Functions
+#   - Parameters
+#   - Dictionaries
+#   - JSON processing
+#   - Error handling
+#   - Return values
+#
+# UFT Concepts:
+#   - API integration
+#   - Data extraction
+#   - Backend validation
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Import Requests Library
+# ----------------------------------------------------------------------------
+
+# Requests is a popular Python package used for making HTTP calls.
+#
+# Common methods:
+#   requests.get()
+#   requests.post()
+#   requests.put()
+#   requests.delete()
+#
+# In automation projects this is frequently used to interact
+# directly with backend REST APIs.
+import requests
+
+
+# ----------------------------------------------------------------------------
+# Login Function
+# ----------------------------------------------------------------------------
+
+def login(base_url, username, password, email):
+    """
+    Authenticate a user against the Advantage Online Shopping API.
+
+    Parameters:
+        base_url   - Target application URL
+        username   - Login user name
+        password   - User password
+        email      - User email address
+
+    Returns:
+        Dictionary containing:
+            Full response
+            Authentication token
+            User ID
+    """
+
+    # ------------------------------------------------------------------------
+    # Build Endpoint URL
+    # ------------------------------------------------------------------------
+
+    # Remove any trailing slash from the base URL.
+    #
+    # Example:
+    #
+    # Input:
+    #   https://www.advantageonlineshopping.com/
+    #
+    # Output:
+    #   https://www.advantageonlineshopping.com
+    #
+    # This prevents accidental double slashes when constructing URLs.
+    url = (
+        f"{base_url.rstrip('/')}"
+        "/accountservice/accountrest/api/v1/login"
+    )
+
+
+    # ------------------------------------------------------------------------
+    # Define Request Headers
+    # ------------------------------------------------------------------------
+
+    # Content-Type tells the server that JSON data
+    # will be sent in the request body.
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+
+    # ------------------------------------------------------------------------
+    # Send Login Request
+    # ------------------------------------------------------------------------
+
+    # Perform an HTTP POST.
+    #
+    # POST is typically used when:
+    #   - Creating records
+    #   - Logging in
+    #   - Submitting form data
+    #
+    # The json parameter automatically converts
+    # this Python dictionary into JSON.
+    response = requests.post(
+        url,
+
+        json={
+            # Login user account name
+            "loginUser": username,
+
+            # User password
+            "loginPassword": password,
+
+            # Email address
+            "email": email
+        }
+    )
+
+
+    # ------------------------------------------------------------------------
+    # Validate HTTP Status
+    # ------------------------------------------------------------------------
+
+    # Raises an exception for HTTP failures.
+    #
+    # Examples:
+    #   400 Bad Request
+    #   401 Unauthorized
+    #   404 Not Found
+    #   500 Server Error
+    #
+    # This eliminates the need to manually check
+    # status codes.
+    response.raise_for_status()
+
+
+    # ------------------------------------------------------------------------
+    # Convert JSON Response
+    # ------------------------------------------------------------------------
+
+    # Convert returned JSON into Python objects.
+    #
+    # JSON:
+    # {
+    #     ...
+    # }
+    #
+    # becomes:
+    #
+    # Python Dictionary
+    data = response.json()
+
+
+    # ------------------------------------------------------------------------
+    # Return Useful Information
+    # ------------------------------------------------------------------------
+
+    # Return multiple values bundled inside
+    # a Python dictionary.
+    #
+    # This makes it easier for other code
+    # to consume the information.
+    return {
+
+        # Entire response structure
+        "response": data,
+
+        # Retrieve token if present
+        #
+        # .get() safely returns None if
+        # the field does not exist.
+        "token": data.get("token"),
+
+        # Retrieve user id if present
+        "user_id": data.get("userId")
+    }
+
+
+# ============================================================================
+# Main Program
+# ============================================================================
+
+# For learning purposes only.
+#
+# In production automation frameworks,
+# credentials should be stored securely
+# rather than hardcoded in test scripts.
+
+try:
+
+    # ------------------------------------------------------------------------
+    # Execute Login
+    # ------------------------------------------------------------------------
+
+    login_response = login(
+
+        # Base URL
+        #
+        # The original pasted script included HTML markup.
+        # This is the corrected URL.
+        "https://www.advantageonlineshopping.com",
+
+        # User name
+        username="myuserid",
+
+        # Password
+        password="password",
+
+        # Email address
+        email="myemail@test.com"
+    )
+
+
+    # ------------------------------------------------------------------------
+    # Authentication Success Message
+    # ------------------------------------------------------------------------
+
+    print("Login successful")
+
+
+    # ------------------------------------------------------------------------
+    # Optional Debugging Information
+    # ------------------------------------------------------------------------
+
+    # Uncomment when troubleshooting.
+    #
+    # This displays the entire JSON
+    # response returned by the server.
+    #
+    # print("\nFull Response:")
+    # print(login_response)
+
+
+    # ------------------------------------------------------------------------
+    # Extract Nested JSON Value
+    # ------------------------------------------------------------------------
+
+    # The login response contains nested
+    # dictionaries.
+    #
+    # Example:
+    #
+    # {
+    #   "response":
+    #   {
+    #      "statusMessage":
+    #      {
+    #         "userId":852223144
+    #      }
+    #   }
+    # }
+    #
+    # To reach userId:
+    #
+    # response
+    #    → statusMessage
+    #          → userId
+    #
+    print(
+        login_response["response"]
+                     ["statusMessage"]
+                     ["userId"]
+    )
+
+
+# ============================================================================
+# HTTP Error Handling
+# ============================================================================
+
+except requests.exceptions.HTTPError as e:
+
+    # Handle failed HTTP responses.
+    #
+    # Examples:
+    #   Invalid credentials
+    #   Authentication failure
+    #   Server errors
+
+    print(f"Login failed: {e}")
+
+    # Display details returned
+    # by the server.
+    print(e.response.text)
+
+
+# ============================================================================
+# General Error Handling
+# ============================================================================
+
+except Exception as e:
+
+    # Catch unexpected runtime errors.
+    #
+    # Examples:
+    #   Network issues
+    #   JSON parsing errors
+    #   Typing mistakes
+    #   Missing fields
+
+    print(f"Unexpected error: {e}")
+    

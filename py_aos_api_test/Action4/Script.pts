@@ -1,0 +1,303 @@
+﻿# ============================================================================
+# AI-Assisted Comment Analysis
+#
+# Purpose:
+#   This script retrieves customer comments from the Advantage Online Shopping
+#   REST API and sends those comments to an AI service for sentiment and
+#   brand-risk analysis.
+#
+# Process:
+#   1. Load reusable functions from a UFT Python function library.
+#   2. Retrieve comments from the Advantage Online Shopping API.
+#   3. Read the AI API key from an environment variable.
+#   4. Construct a prompt containing the customer comments.
+#   5. Send the prompt to the AI service.
+#   6. Extract the AI-generated assessment.
+#   7. Display the assessment in a dialog box.
+#
+# Python Concepts:
+#   - Function libraries
+#   - Module imports
+#   - Environment variables
+#   - Conditional statements
+#   - Exceptions
+#   - HTTP sessions
+#   - Dictionaries and lists
+#   - JSON request and response processing
+#   - Nested dictionary access
+#   - f-strings
+#
+# UFT Concepts:
+#   - Loading reusable Python libraries
+#   - Combining API operations with UFT tests
+#   - Displaying results to the test user
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+# Load the UFT Python Function Library
+# ----------------------------------------------------------------------------
+
+# LoadFunctionLibrary makes functions and classes defined in another Python
+# file available to the current UFT test.
+#
+# In this example, aos_library.py is expected to contain:
+#
+#   GetComments()
+#       Retrieves comments from the Advantage Online Shopping API.
+#
+#   show_info_dialog()
+#       Displays a title and message in a dialog window.
+#
+# Using a library prevents reusable functions from being duplicated across
+# multiple UFT tests.
+
+# Be sure to place the aos_library in a reachable directory.
+LoadFunctionLibrary("C:\\Data\\uft_python\\python_library\\aos_library.py")
+
+
+# ----------------------------------------------------------------------------
+# Import Required Python Modules
+# ----------------------------------------------------------------------------
+
+# The os module provides access to operating-system features.
+#
+# This script uses os.environ to read the API key from an
+# environment variable instead of placing the secret directly in the code.
+import os
+
+
+# The requests library is used to make HTTP calls.
+#
+# In this script, it sends the customer comments to an AI REST API.
+import requests
+
+
+# ----------------------------------------------------------------------------
+# Retrieve Comments from Advantage Online Shopping
+# ----------------------------------------------------------------------------
+
+# Call GetComments(), which was loaded from aos_library.py.
+#
+# The function is expected to call the Advantage Online Shopping REST API
+# and return the comments as a Python object, usually a dictionary containing
+# JSON data.
+#
+# The URL below has been cleaned up because the original pasted script
+# contained HTML anchor-tag formatting.
+comments = GetComments(
+    "https://www.advantageonlineshopping.com"
+)
+
+
+# ----------------------------------------------------------------------------
+# Retrieve the API Key Securely
+# ----------------------------------------------------------------------------
+
+# Read the OPENAI_API_KEY environment variable.
+#
+# Environment variables provide a safer way to supply secrets than writing
+# them directly into the test script.
+#
+# If the variable exists, api_key receives its value.
+# If it does not exist, api_key receives None.
+api_key = os.environ.get("OPENAI_API_KEY")
+
+
+# Verify that an API key was found.
+#
+# In Python, "not api_key" evaluates to True when api_key is:
+#   - None
+#   - An empty string
+#   - Another value considered false
+if not api_key:
+
+    # Stop the script immediately and explain what is missing.
+    #
+    # Raising an exception prevents the script from sending an unauthorized
+    # request that would fail later with a less meaningful error.
+    raise RuntimeError(
+        "OPENAI_API_KEY environment variable is not set"
+    )
+
+
+# ----------------------------------------------------------------------------
+# Build the AI Question
+# ----------------------------------------------------------------------------
+
+# Create the instruction that will be sent to the AI model.
+#
+# str(comments) converts the Python comments object into text so it can be
+# appended to the question.
+#
+# The resulting prompt asks the model to identify comments that might be
+# harmful to the Advantage Online Shopping brand.
+question = (
+    "Analyze these comments and determine if there is anything that may be "
+    "harmful to the Advantage Online Shopping brand:\n\n"
+    + str(comments)
+)
+
+
+# ----------------------------------------------------------------------------
+# Create an HTTP Session
+# ----------------------------------------------------------------------------
+
+# A requests Session maintains common configuration across HTTP requests.
+#
+# Benefits include:
+#   - Reusing headers
+#   - Reusing network connections
+#   - Keeping authentication settings in one place
+#
+# Although this script makes only one AI request, using a session makes the
+# code easier to extend if more AI calls are added later.
+session = requests.Session()
+
+
+# ----------------------------------------------------------------------------
+# Configure Authentication and Content Headers
+# ----------------------------------------------------------------------------
+
+# Add headers that will be included with requests made through this session.
+session.headers.update(
+    {
+        # The Authorization header passes the API key as a bearer token.
+        #
+        # The f-string inserts the value of api_key into the header:
+        #
+        #   Bearer <API key>
+        "Authorization": f"Bearer {api_key}",
+
+        # Content-Type tells the server that the request body contains JSON.
+        "Content-Type": "application/json"
+    }
+)
+
+
+# ----------------------------------------------------------------------------
+# Send the AI Request
+# ----------------------------------------------------------------------------
+
+# Send an HTTP POST request to the AI chat-completions endpoint.
+#
+# POST is used because the script is sending data and instructions
+# to the service for processing.
+response = session.post(
+
+    # REST API endpoint.
+    #
+    # The original pasted script contained HTML anchor-tag formatting.
+    # This is the intended plain Python string.
+    "https://api.openai.com/v1/chat/completions",
+
+    # The json parameter accepts a Python dictionary.
+    #
+    # requests automatically converts this dictionary into JSON before
+    # transmitting it.
+    json={
+        # Identify the model that should process the request.
+        "model": "gpt-4.1-mini",
+
+        # The messages list represents the conversation sent to the model.
+        #
+        # Each item contains:
+        #   role    - identifies who provided the message
+        #   content - contains the actual instruction or question
+        "messages": [
+            {
+                # The system message defines the model's overall role
+                # and expected behavior.
+                "role": "system",
+
+                # Instruct the model to categorize the comments by sentiment.
+                "content": (
+                    "You are a helpful assistant that categorizes comments "
+                    "as positive, negative, or neutral."
+                )
+            },
+            {
+                # The user message contains the comments and asks the model
+                # to assess possible brand impact.
+                "role": "user",
+                "content": question
+            }
+        ]
+    },
+
+    # Stop waiting if the server does not respond within 60 seconds.
+    #
+    # A timeout prevents the UFT test from waiting indefinitely because of
+    # a network or service problem.
+    timeout=60
+)
+
+
+# ----------------------------------------------------------------------------
+# Validate the HTTP Response
+# ----------------------------------------------------------------------------
+
+# Raise an HTTPError if the service returned an unsuccessful HTTP status.
+#
+# Examples include:
+#   400 - Invalid request
+#   401 - Missing or invalid API key
+#   429 - Request or usage limit reached
+#   500 - Server-side failure
+#
+# Without this statement, the script might try to process an error response
+# as though it were a successful AI result.
+response.raise_for_status()
+
+
+# ----------------------------------------------------------------------------
+# Convert the JSON Response to Python Objects
+# ----------------------------------------------------------------------------
+
+# Convert the response body from JSON into Python dictionaries and lists.
+#
+# The variable data now contains the complete response returned by the AI
+# service.
+data = response.json()
+
+
+# ----------------------------------------------------------------------------
+# Extract the AI-Generated Answer
+# ----------------------------------------------------------------------------
+
+# Navigate through the nested response structure to retrieve the generated
+# message content.
+#
+# Breakdown:
+#
+#   data["choices"]
+#       Retrieves the list of generated choices.
+#
+#   [0]
+#       Selects the first choice in that list.
+#
+#   ["message"]
+#       Retrieves the generated message object.
+#
+#   ["content"]
+#       Retrieves the actual assessment text.
+#
+# The final answer is stored as a Python string.
+answer = data["choices"][0]["message"]["content"]
+
+
+# ----------------------------------------------------------------------------
+# Display the Assessment
+# ----------------------------------------------------------------------------
+
+# Display the AI-generated assessment in an information dialog.
+#
+# show_info_dialog() is expected to be defined in aos_library.py.
+#
+# Arguments:
+#   "Assessment Complete" - dialog title
+#   answer                - AI-generated message displayed in the dialog
+show_info_dialog(
+    "Assessment Complete",
+    answer
+)

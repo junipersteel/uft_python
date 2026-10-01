@@ -1,0 +1,10 @@
+﻿Browser("Advantage Shopping").Page("Advantage Shopping").Link("UserMenu").Click() @@ hightlight id_;_10000000_;_script infofile_;_ZIP::ssf1.xml_;_
+
+# Make sure to update with your own user ID and password
+Browser("Advantage Shopping").Page("Advantage Shopping").WebEdit("username").Set("juser") @@ hightlight id_;_10000000_;_script infofile_;_ZIP::ssf2.xml_;_
+Browser("Advantage Shopping").Page("Advantage Shopping").WebEdit("password").SetSecure("69c6e407f07cc39072916f68d3fc25680558b4f12d48b10e") @@ hightlight id_;_10000000_;_script infofile_;_ZIP::ssf3.xml_;_
+Browser("Advantage Shopping").Page("Advantage Shopping").WebElement("SIGN IN").Click() @@ hightlight id_;_10000000_;_script infofile_;_ZIP::ssf4.xml_;_
+Browser("Advantage Shopping").Page("Advantage Shopping").WebButton("sign_in_btn").Click() @@ hightlight id_;_10000000_;_script infofile_;_ZIP::ssf5.xml_;_
+
+
+
